@@ -66,7 +66,7 @@ public class TimerManager {
         timerLabel.setText(formatTime(initialTimeRemaining));
     }
 
-    // 초 단위를 "hh:mm:ss" 형식으로 변환
+    // 초 단위 변환
     public String formatTime(int totalSeconds) {
         int hours = totalSeconds / 3600;
         int minutes = (totalSeconds % 3600) / 60;
@@ -74,7 +74,7 @@ public class TimerManager {
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
 
-    // 현재 남은 시간을 "hh:mm:ss" 형식으로 반환
+    // 현재 남은 시간
     public String formatTime() {
         return formatTime(timeRemaining);
     }
