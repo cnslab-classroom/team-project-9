@@ -6,8 +6,8 @@ public class GUI {
     private static JFrame mainFrame;
     private static JPanel mainPanel;
     private static CardLayout cardLayout;
-    private static Stack<String> screenHistory = new Stack<>(); // 화면 기록 스택
-    private static TimerManager timerManager; // TimerManager 인스턴스
+    private static Stack<String> screenHistory = new Stack<>(); //화면 기록
+    private static TimerManager timerManager; 
 
     public static void main(String[] args) {
         // 기본 폰트 설정
@@ -43,9 +43,9 @@ public class GUI {
     // 화면 전환 함수
     private static void switchScreen(String screenName) {
         if (screenHistory.isEmpty() || !screenHistory.peek().equals(screenName)) {
-            screenHistory.push(screenName); // 현재 화면 기록
+            screenHistory.push(screenName); 
         }
-        cardLayout.show(mainPanel, screenName); // 화면 전환
+        cardLayout.show(mainPanel, screenName); 
     }
 
     // 메인 메뉴 패널 생성
@@ -73,7 +73,7 @@ public class GUI {
         menuPanel.add(buttonPanel, BorderLayout.CENTER);
 
         JButton exitButton = new JButton("나가기");
-        exitButton.addActionListener(e -> System.exit(0)); // 프로그램 종료
+        exitButton.addActionListener(e -> System.exit(0)); 
         JPanel exitPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         exitPanel.add(exitButton);
         menuPanel.add(exitPanel, BorderLayout.SOUTH);
@@ -153,7 +153,7 @@ public class GUI {
         timerButton.addActionListener(e -> showTimerAndCaloriesPanel());
 
         JButton routineButton = new JButton("알림 설정");
-        routineButton.addActionListener(e -> JOptionPane.showMessageDialog(mainFrame, "알림 설정 창을 엽니다.", "알림 설정", JOptionPane.INFORMATION_MESSAGE));
+        routineButton.addActionListener(e -> showNotificationPanel());
 
         JButton recordButton = new JButton("운동 기록");
         recordButton.addActionListener(e -> JOptionPane.showMessageDialog(mainFrame, "운동 기록 창을 엽니다.", "운동 기록", JOptionPane.INFORMATION_MESSAGE));
@@ -308,7 +308,7 @@ public class GUI {
         resetButton.addActionListener(e -> {
             if (timerManager != null) {
                 timerManager.resetTimer(timerLabel);
-                recordArea.setText(""); // 기록 초기화
+                recordArea.setText(""); 
             }
         });
 
@@ -379,5 +379,62 @@ public class GUI {
                 JOptionPane.showMessageDialog(parentFrame, "올바른 숫자를 입력하세요.", "입력 오류", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    
+    // 알림 설정 화면 생성
+    private static void showNotificationPanel() {
+        JFrame notificationFrame = new JFrame("알림 설정");
+        notificationFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        notificationFrame.setSize(500, 600); 
+        notificationFrame.setLayout(new BorderLayout(10, 10));
+        notificationFrame.setResizable(false);
+
+        // 상단 텍스트와 입력 필드
+        JLabel label = new JLabel("알림 시간을 설정하세요 (hh:mm):", JLabel.CENTER);
+        JTextField timeField = new JTextField();
+
+        // 저장 버튼
+        JButton saveButton = new JButton("저장");
+        saveButton.addActionListener(e -> {
+            String time = timeField.getText().trim();
+            if (time.isEmpty()) {
+                JOptionPane.showMessageDialog(notificationFrame, "시간을 입력하세요!", "입력 오류", JOptionPane.ERROR_MESSAGE);
+            } else if (!time.matches("\\달력 올 칸")) { 
+                JOptionPane.showMessageDialog(notificationFrame, "올바른 형식으로 시간을 입력하세요! (예: 09:30)", "입력 오류", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(notificationFrame, "알림이 설정되었습니다: " + time, "알림 설정", JOptionPane.INFORMATION_MESSAGE);
+                notificationFrame.dispose(); 
+            }
+        });
+
+        // 취소 버튼
+        JButton cancelButton = new JButton("취소");
+        cancelButton.addActionListener(e -> notificationFrame.dispose());
+
+        // 상단 버튼 패널 
+        JPanel topPanel = new JPanel(new BorderLayout());
+        JButton backButton = new JButton("돌아가기");
+        backButton.addActionListener(e -> notificationFrame.dispose()); 
+
+        topPanel.add(backButton, BorderLayout.WEST);
+
+        // 입력 패널 구성
+        JPanel inputPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        inputPanel.add(label);
+        inputPanel.add(timeField);
+
+        // 버튼 패널 구성
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
+
+        // 메인 패널에 추가
+        notificationFrame.add(topPanel, BorderLayout.NORTH); 
+        notificationFrame.add(inputPanel, BorderLayout.CENTER);
+        notificationFrame.add(buttonPanel, BorderLayout.SOUTH);
+
+        // 창 표시
+        notificationFrame.setVisible(true);
     }
 }
