@@ -7,7 +7,8 @@ public class GUI {
     private static JPanel mainPanel;
     private static CardLayout cardLayout;
     private static Stack<String> screenHistory = new Stack<>(); //화면 기록
-    private static TimerManager timerManager; 
+    private static ExerciseManager exerciseManagerInstance = ExerciseManager.getExerciseManager(); // 이름 변경
+    public static ExerciseManager getExerciseManager() {return exerciseManagerInstance;}
 
     public static void main(String[] args) {
         // 기본 폰트 설정
@@ -140,12 +141,8 @@ public class GUI {
         topPanel.add(backButton);
         topPanel.add(resetButton);
 
-        // 중간 상단 텍스트 영역
-        JTextArea upperTextArea = new JTextArea("운동 관리 인터페이스\n운동 진행 상황 및 기록을 확인하세요.");
-        upperTextArea.setLineWrap(true);
-        upperTextArea.setWrapStyleWord(true);
-        upperTextArea.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        upperTextArea.setPreferredSize(new Dimension(400, 100));
+        // 중앙 영역: 달력 추가
+        JPanel calendarPanel = ExerciseManager.getExerciseManager().createDateFormPanel();
 
         // 하단 버튼 영역
         JPanel lowerPanel = new JPanel(new GridLayout(3, 1, 10, 10));
@@ -156,22 +153,23 @@ public class GUI {
         routineButton.addActionListener(e -> showNotificationPanel());
 
         JButton recordButton = new JButton("운동 기록");
-        recordButton.addActionListener(e -> JOptionPane.showMessageDialog(mainFrame, "운동 기록 창을 엽니다.", "운동 기록", JOptionPane.INFORMATION_MESSAGE));
+        recordButton.addActionListener(e -> showExerciseRecordPopup());
 
         lowerPanel.add(timerButton);
         lowerPanel.add(routineButton);
         lowerPanel.add(recordButton);
 
-        // 메인 레이아웃 
+        // 메인 레이아웃 구성 (버튼)
         JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
-        centerPanel.add(upperTextArea, BorderLayout.CENTER);
-        centerPanel.add(lowerPanel, BorderLayout.SOUTH);
+        centerPanel.add(calendarPanel, BorderLayout.CENTER); 
+        centerPanel.add(lowerPanel, BorderLayout.SOUTH); 
 
-        exercisePanel.add(topPanel, BorderLayout.NORTH);
-        exercisePanel.add(centerPanel, BorderLayout.CENTER);
+        exercisePanel.add(topPanel, BorderLayout.NORTH); 
+        exercisePanel.add(centerPanel, BorderLayout.CENTER); 
 
         return exercisePanel;
     }
+
 
     // 돌아가기 버튼 
     private static void navigateBack() {
@@ -189,43 +187,48 @@ public class GUI {
     // 몸무게 입력
     private static void showWeightInputDialog() {
         boolean validInput = false;
-
+    
         while (!validInput) {
             JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
-
+    
             JLabel weightLabel = new JLabel("현재 몸무게 (kg):");
             JTextField weightField = new JTextField();
-
+    
             JLabel targetWeightLabel = new JLabel("희망 몸무게 (kg):");
             JTextField targetWeightField = new JTextField();
-
+    
             JLabel daysLabel = new JLabel("목표 감량 일수 (일):");
             JTextField daysField = new JTextField();
-
+    
             panel.add(weightLabel);
             panel.add(weightField);
             panel.add(targetWeightLabel);
             panel.add(targetWeightField);
             panel.add(daysLabel);
             panel.add(daysField);
-
+    
             int result = JOptionPane.showConfirmDialog(mainFrame, panel, "운동 목표 설정", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
+    
             if (result == JOptionPane.CANCEL_OPTION) return;
-
+    
             try {
                 double currentWeight = Double.parseDouble(weightField.getText().trim());
                 double targetWeight = Double.parseDouble(targetWeightField.getText().trim());
                 int targetDays = Integer.parseInt(daysField.getText().trim());
-
+    
                 if (currentWeight <= 0 || targetWeight <= 0 || targetDays <= 0) {
                     JOptionPane.showMessageDialog(mainFrame, "모든 값은 0보다 커야 합니다!", "입력 오류", JOptionPane.ERROR_MESSAGE);
                 } else if (currentWeight <= targetWeight) {
                     JOptionPane.showMessageDialog(mainFrame, "현재 몸무게는 희망 몸무게보다 커야 합니다!", "입력 오류", JOptionPane.ERROR_MESSAGE);
                 } else {
+                    // ExerciseManager에 데이터 저장
+                    ExerciseManager.getExerciseManager().addExerciseData(currentWeight, targetWeight, targetDays);
+    
                     JOptionPane.showMessageDialog(mainFrame,
                             "입력 완료!\n현재 몸무게: " + currentWeight + "kg\n희망 몸무게: " + targetWeight + "kg\n목표 감량 일수: " + targetDays + "일",
                             "운동 목표", JOptionPane.INFORMATION_MESSAGE);
+    
+                            System.out.println("저장된 데이터: " + ExerciseManager.getExerciseManager().getLastExerciseData());
                     validInput = true;
                 }
             } catch (NumberFormatException ex) {
@@ -277,24 +280,26 @@ public class GUI {
 
         // 타이머 동작
         startButton.addActionListener(e -> {
-            if (timerManager == null) {
-                JOptionPane.showMessageDialog(timerFrame, "시간을 먼저 설정하세요.", "경고", JOptionPane.WARNING_MESSAGE);
+            ExerciseManager manager = GUI.getExerciseManager();
+            if (!manager.isRunning()) {
+                manager.startTimer(timerLabel);
             } else {
-                timerManager.startTimer(timerLabel);
+                JOptionPane.showMessageDialog(timerFrame, "타이머가 이미 실행 중입니다.", "경고", JOptionPane.WARNING_MESSAGE);
             }
         });
 
         stopButton.addActionListener(e -> {
-            if (timerManager != null && timerManager.isRunning()) {
-                timerManager.stopTimer();
+            ExerciseManager manager = GUI.getExerciseManager();
+            if (manager.isRunning()) {
+                manager.stopTimer();
         
                 // 경과된 시간 계산
-                int elapsedTimeInSeconds = timerManager.getElapsedSeconds();
+                int elapsedTimeInSeconds = manager.getElapsedSeconds();
                 int hours = elapsedTimeInSeconds / 3600;
                 int minutes = (elapsedTimeInSeconds % 3600) / 60;
                 int seconds = elapsedTimeInSeconds % 60;
         
-                double burnedCalories = timerManager.calculateCalories(elapsedTimeInSeconds);
+                double burnedCalories = manager.calculateCalories(elapsedTimeInSeconds);
         
                 // 기록 추가
                 String record = String.format(
@@ -302,15 +307,17 @@ public class GUI {
                     hours, minutes, seconds, burnedCalories
                 );
                 recordArea.append(record);
+            } else {
+                JOptionPane.showMessageDialog(timerFrame, "타이머가 실행 중이 아닙니다.", "경고", JOptionPane.WARNING_MESSAGE);
             }
         });
         
         resetButton.addActionListener(e -> {
-            if (timerManager != null) {
-                timerManager.resetTimer(timerLabel);
-                recordArea.setText(""); 
-            }
+            ExerciseManager manager = GUI.getExerciseManager();
+            manager.resetTimer(timerLabel);
+            recordArea.setText(""); // 기록 초기화
         });
+        
 
         // 구성 요소 배치
         JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
@@ -327,19 +334,19 @@ public class GUI {
     // 시간 및 칼로리 설정
     private static void showTimeAndCaloriesInputDialog(JFrame parentFrame) {
         JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
-
+    
         JLabel hourLabel = new JLabel("시간 (시):");
         JTextField hourField = new JTextField();
-
+    
         JLabel minuteLabel = new JLabel("분 (분):");
         JTextField minuteField = new JTextField();
-
+    
         JLabel secondLabel = new JLabel("초 (초):");
         JTextField secondField = new JTextField();
-
+    
         JLabel caloriesLabel = new JLabel("분당 칼로리 (kcal):");
         JTextField caloriesField = new JTextField();
-
+    
         panel.add(hourLabel);
         panel.add(hourField);
         panel.add(minuteLabel);
@@ -348,31 +355,24 @@ public class GUI {
         panel.add(secondField);
         panel.add(caloriesLabel);
         panel.add(caloriesField);
-
+    
         boolean validInput = false;
         while (!validInput) {
             int result = JOptionPane.showConfirmDialog(parentFrame, panel, "시간 및 칼로리 설정", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
+    
             if (result == JOptionPane.CANCEL_OPTION) return;
-
+    
             try {
                 int hours = Integer.parseInt(hourField.getText().trim());
                 int minutes = Integer.parseInt(minuteField.getText().trim());
                 int seconds = Integer.parseInt(secondField.getText().trim());
                 double calories = Double.parseDouble(caloriesField.getText().trim());
-
-                if (hours < 0 || hours > 24 ) {
-                    JOptionPane.showMessageDialog(parentFrame, "범위 내 값을 입력해주세요.\n시간: 0~24", "입력 오류", JOptionPane.ERROR_MESSAGE);
-                } else if (minutes < 0 || minutes > 59) {
-                    JOptionPane.showMessageDialog(parentFrame, "범위 내 값을 입력해주세요.\n분: 0~59", "입력 오류", JOptionPane.ERROR_MESSAGE);
-
-                } else if (seconds < 0 || seconds > 59) {
-                    JOptionPane.showMessageDialog(parentFrame, "범위 내 값을 입력해주세요.\n초: 0~59", "입력 오류", JOptionPane.ERROR_MESSAGE);
-                } else if (calories < 0) {
-                    JOptionPane.showMessageDialog(parentFrame, "칼로리는 0 이상이어야 합니다.", "입력 오류", JOptionPane.ERROR_MESSAGE);
+    
+                if (hours < 0 || hours > 24 || minutes < 0 || minutes > 59 || seconds < 0 || seconds > 59 || calories < 0) {
+                    JOptionPane.showMessageDialog(parentFrame, "올바른 값을 입력하세요.", "입력 오류", JOptionPane.ERROR_MESSAGE);
                 } else {
-                    timerManager = new TimerManager(hours, minutes, seconds, calories);
-                    JOptionPane.showMessageDialog(parentFrame, "설정 완료: " + timerManager.formatTime() + ", 분당 칼로리: " + calories, "설정 완료", JOptionPane.INFORMATION_MESSAGE);
+                    ExerciseManager.getExerciseManager().setTimer(hours, minutes, seconds, calories);
+                    JOptionPane.showMessageDialog(parentFrame, "설정 완료!", "설정 완료", JOptionPane.INFORMATION_MESSAGE);
                     validInput = true;
                 }
             } catch (NumberFormatException e) {
@@ -380,61 +380,209 @@ public class GUI {
             }
         }
     }
+    
 
     
     // 알림 설정 화면 생성
+    
     private static void showNotificationPanel() {
+    
+        // 알림 설정 창
         JFrame notificationFrame = new JFrame("알림 설정");
         notificationFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        notificationFrame.setSize(500, 600); 
+        notificationFrame.setSize(500, 600); // 운동 관리 인터페이스 크기와 동일
         notificationFrame.setLayout(new BorderLayout(10, 10));
-        notificationFrame.setResizable(false);
+    
+        // 상단 패널: 돌아가기 버튼과 디지털 시계
+        JPanel topPanel = new JPanel(new BorderLayout());
+    
+        // 돌아가기 버튼
+        JButton backButton = new JButton("돌아가기");
+        backButton.addActionListener(e -> notificationFrame.dispose());
+        topPanel.add(backButton, BorderLayout.WEST); // 좌측 상단에 배치
+    
+        // 디지털 시계 표시
+        JLabel currentTimeLabel = new JLabel("00:00", JLabel.CENTER);
+        currentTimeLabel.setFont(new Font("Monospaced", Font.BOLD, 50));
+        currentTimeLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        ExerciseManager.getExerciseManager().updateDigitalClock(currentTimeLabel);
+        topPanel.add(currentTimeLabel, BorderLayout.CENTER);
 
-        // 상단 텍스트와 입력 필드
-        JLabel label = new JLabel("알림 시간을 설정하세요 (hh:mm):", JLabel.CENTER);
-        JTextField timeField = new JTextField();
+    
+        // 알림 시간 입력 패널
+        JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10)); // 좌측 정렬
+        JLabel alarmLabel = new JLabel("알림 시간 (HH:mm):");
+        alarmLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+        JTextField alarmTimeField = new JTextField(10); 
+        inputPanel.add(alarmLabel);
+        inputPanel.add(alarmTimeField);
+    
+        // 설정된 알림 시간 표시 필드
+        JTextArea alarmDisplayField = new JTextArea();
+        alarmDisplayField.setFont(new Font("맑은 고딕", Font.PLAIN, 20));
+        alarmDisplayField.setLineWrap(true);
+        alarmDisplayField.setWrapStyleWord(true);
+        alarmDisplayField.setEditable(false);
+        alarmDisplayField.setBorder(BorderFactory.createTitledBorder("설정된 알림 시간"));
+    
+        ExerciseManager manager = GUI.getExerciseManager();
+        if (!manager.getAlarmTime().isEmpty()) {
+            alarmDisplayField.setText("알림 시간: " + manager.getAlarmTime());
+        }
 
+    
+        // 알림 시간 입력 필드 동작 - 엔터 키로 저장
+        alarmTimeField.addActionListener(e -> manager.saveAlarmTime(alarmTimeField, alarmDisplayField));
+    
         // 저장 버튼
         JButton saveButton = new JButton("저장");
         saveButton.addActionListener(e -> {
-            String time = timeField.getText().trim();
-            if (time.isEmpty()) {
-                JOptionPane.showMessageDialog(notificationFrame, "시간을 입력하세요!", "입력 오류", JOptionPane.ERROR_MESSAGE);
-            } else if (!time.matches("\\달력 올 칸")) { 
-                JOptionPane.showMessageDialog(notificationFrame, "올바른 형식으로 시간을 입력하세요! (예: 09:30)", "입력 오류", JOptionPane.ERROR_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(notificationFrame, "알림이 설정되었습니다: " + time, "알림 설정", JOptionPane.INFORMATION_MESSAGE);
-                notificationFrame.dispose(); 
-            }
+            ExerciseManager exerciseManager = GUI.getExerciseManager(); // 변수 이름 변경
+            exerciseManager.saveAlarmTime(alarmTimeField, alarmDisplayField);
         });
 
+        // 리셋 버튼
+        JButton resetButton = new JButton("리셋");
+        resetButton.addActionListener(e -> {
+            ExerciseManager exerciseManager = GUI.getExerciseManager(); // 변수 이름 변경
+            alarmTimeField.setText(""); // 입력 필드 초기화
+            alarmDisplayField.setText(""); // 설정된 알람 시간 초기화
+            exerciseManager.resetAlarmTime();
+            JOptionPane.showMessageDialog(notificationFrame, "알림이 리셋되었습니다.", "리셋", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+    
         // 취소 버튼
         JButton cancelButton = new JButton("취소");
         cancelButton.addActionListener(e -> notificationFrame.dispose());
-
-        // 상단 버튼 패널 
-        JPanel topPanel = new JPanel(new BorderLayout());
-        JButton backButton = new JButton("돌아가기");
-        backButton.addActionListener(e -> notificationFrame.dispose()); 
-
-        topPanel.add(backButton, BorderLayout.WEST);
-
-        // 입력 패널 구성
-        JPanel inputPanel = new JPanel(new GridLayout(2, 1, 10, 10));
-        inputPanel.add(label);
-        inputPanel.add(timeField);
-
-        // 버튼 패널 구성
+    
+        // 버튼 패널
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.add(saveButton);
+        buttonPanel.add(resetButton);
         buttonPanel.add(cancelButton);
-
-        // 메인 패널에 추가
-        notificationFrame.add(topPanel, BorderLayout.NORTH); 
-        notificationFrame.add(inputPanel, BorderLayout.CENTER);
-        notificationFrame.add(buttonPanel, BorderLayout.SOUTH);
-
-        // 창 표시
+    
+        // 메인 패널 구성
+        JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+        centerPanel.add(inputPanel, BorderLayout.NORTH); // 알림 시간 입력 패널
+        centerPanel.add(new JScrollPane(alarmDisplayField), BorderLayout.CENTER); // 설정된 알림 시간 표시 (스크롤 가능)
+    
+        // 프레임 구성
+        notificationFrame.add(topPanel, BorderLayout.NORTH); // 상단: 돌아가기 버튼과 디지털 시계
+        notificationFrame.add(centerPanel, BorderLayout.CENTER); // 중앙: 입력 및 설정된 시간 표시
+        notificationFrame.add(buttonPanel, BorderLayout.SOUTH); // 하단: 버튼 패널
+    
         notificationFrame.setVisible(true);
     }
+
+    // 운동 기록 팝업 창 열기
+    private static void showExerciseRecordPopup() {
+        JFrame recordFrame = new JFrame("운동 기록");
+        recordFrame.setSize(500, 600);
+        recordFrame.setLayout(new BorderLayout());
+        recordFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    
+        // 돌아가기 버튼
+        JPanel topPanel = new JPanel(new BorderLayout());
+        JButton backButton = new JButton("돌아가기");
+        backButton.addActionListener(e -> recordFrame.dispose());
+        topPanel.add(backButton, BorderLayout.WEST);
+        recordFrame.add(topPanel, BorderLayout.NORTH);
+    
+        // 운동 선택, 시간 입력, 결과 출력
+        JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+    
+        // 운동 선택 및 시간 입력 영역
+        JPanel inputPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        JLabel exerciseLabel = new JLabel("운동 종류:");
+        String[] exercises = {"걷기", "달리기", "수영", "직접입력"};
+        JComboBox<String> exerciseComboBox = new JComboBox<>(exercises);
+        exerciseComboBox.setBackground(Color.WHITE); // 배경 하얀색
+    
+        JLabel hourLabel = new JLabel("운동 시간 (시간):");
+        JTextField hourInput = new JTextField(5);
+    
+        JLabel minuteLabel = new JLabel("운동 시간 (분):");
+        JTextField minuteInput = new JTextField(5);
+    
+        inputPanel.add(exerciseLabel);
+        inputPanel.add(exerciseComboBox);
+        inputPanel.add(hourLabel);
+        inputPanel.add(hourInput);
+        inputPanel.add(minuteLabel);
+        inputPanel.add(minuteInput);
+    
+        centerPanel.add(inputPanel, BorderLayout.NORTH);
+    
+        // 칼로리 계산 결과 영역
+        JTextArea calorieResultArea = new JTextArea("총 소모 칼로리: ");
+        calorieResultArea.setEditable(false);
+        calorieResultArea.setLineWrap(true);
+        calorieResultArea.setWrapStyleWord(true);
+        calorieResultArea.setBorder(BorderFactory.createTitledBorder("결과"));
+        calorieResultArea.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+        calorieResultArea.setPreferredSize(new Dimension(500, 300));
+        JScrollPane calorieScrollPane = new JScrollPane(calorieResultArea);
+        centerPanel.add(calorieScrollPane, BorderLayout.CENTER);
+    
+        recordFrame.add(centerPanel, BorderLayout.CENTER);
+    
+        // 동작: "직접 입력" 선택 시 칼로리 입력창 띄우기
+        exerciseComboBox.addActionListener(e -> {
+            String selectedExercise = (String) exerciseComboBox.getSelectedItem();
+            if ("직접입력".equals(selectedExercise)) {
+                String calorieInput = JOptionPane.showInputDialog(recordFrame, "분당 소모 칼로리를 입력하세요:", "직접 입력", JOptionPane.PLAIN_MESSAGE);
+                try {
+                    double customCalories = Double.parseDouble(calorieInput);
+                    ExerciseManager.getExerciseManager().setCustomCalories(customCalories);
+                    JOptionPane.showMessageDialog(recordFrame, "분당 칼로리: " + customCalories + " kcal로 설정되었습니다.", "설정 완료", JOptionPane.INFORMATION_MESSAGE);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(recordFrame, "올바른 숫자를 입력해주세요.", "입력 오류", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+    
+        // 하단 패널: 칼로리 계산 및 저장 버튼
+        JPanel bottomPanel = new JPanel(new FlowLayout());
+        JButton calculateButton = new JButton("칼로리 계산");
+        JButton saveButton = new JButton("저장");
+    
+        // 칼로리 계산 버튼 동작
+        calculateButton.addActionListener(e -> {
+            try {
+                // 사용자 입력 가져오기
+                String selectedExercise = (String) exerciseComboBox.getSelectedItem();
+                String hourText = hourInput.getText().trim();
+                String minuteText = minuteInput.getText().trim();
+
+                // 입력값 검증
+                double hours = hourText.isEmpty() ? 0 : Double.parseDouble(hourText);
+                double minutes = minuteText.isEmpty() ? 0 : Double.parseDouble(minuteText);
+
+                // ExerciseManager를 통해 시간과 분 단위로 칼로리 계산
+                ExerciseManager manager = ExerciseManager.getExerciseManager();
+                double totalCalories = manager.calculateCaloriesWithTime(selectedExercise, hours, minutes);
+
+                // 결과 출력
+                calorieResultArea.setText(String.format("총 소모 칼로리: %.2f kcal\n(운동 시간: %.0f분)", totalCalories, (hours * 60) + minutes));
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(recordFrame, "시간과 분을 올바른 숫자로 입력해주세요.", "입력 오류", JOptionPane.ERROR_MESSAGE);
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(recordFrame, ex.getMessage(), "입력 오류", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+    
+        // 저장 버튼 동작
+        saveButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(recordFrame, "운동 기록이 저장되었습니다.", "저장 완료", JOptionPane.INFORMATION_MESSAGE);
+        });
+    
+        bottomPanel.add(calculateButton);
+        bottomPanel.add(saveButton);
+        recordFrame.add(bottomPanel, BorderLayout.SOUTH);
+    
+        // 팝업 창 표시
+        recordFrame.setVisible(true);
+    }
+    
 }
