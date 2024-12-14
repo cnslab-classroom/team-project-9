@@ -33,10 +33,12 @@ public class StudyManagerAppGUI {
         JButton manageScheduleButton = new JButton("강의 목록 관리");
         JButton manageSummaryButton = new JButton("강의 요약 관리");
         JButton reviewNotificationButton = new JButton("복습 알림 관리");
+        JButton exitButton = new JButton("실행 종료");
 
         panel.add(manageScheduleButton);
         panel.add(manageSummaryButton);
         panel.add(reviewNotificationButton);
+        panel.add(exitButton);
 
         // 각 버튼에 대한 이벤트 리스너
         manageScheduleButton.addActionListener(new ActionListener() {
@@ -66,25 +68,54 @@ public class StudyManagerAppGUI {
             }
         });
 
+        exitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+
         // 초기화 및 프레임 보이기
         frame.add(panel);
         frame.setVisible(true);
 
-        // 프로그램 실행 시, 초기 상태 출력
-        StringBuilder builder = new StringBuilder();
-        printDailyScheduleAndReviewNotification(builder);
-        textArea.setText(builder.toString());
+        // GUI 초기 실행 시 출력
+        StringBuilder initialMessage = new StringBuilder();
+        printDailyScheduleAndReviewNotification(initialMessage);
+        textArea.setText(initialMessage.toString());
     }
 
     // 1. 요일별 강의 목록 입력하고 출력
     private static void manageSchedule(StringBuilder builder) {
-        String day = JOptionPane.showInputDialog("요일을 입력하세요 (예: MONDAY): ");
-        String courses = JOptionPane.showInputDialog("해당 요일에 들어야 할 강의들을 입력하세요 (쉼표로 구분): ");
-        List<String> courseList = Arrays.asList(courses.split(","));
-        schedule.put(day.toUpperCase(), courseList);
+        String[] options = {"강의 추가", "강의 삭제", "메뉴로 돌아가기"};
+        int choice = JOptionPane.showOptionDialog(null, "원하는 기능을 선택하세요", "강의 목록 관리",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 
-        builder.append(day + "의 강의 목록이 저장되었습니다.\n");
-        saveData();  // 데이터 저장
+        if (choice == 0) {
+            String day = JOptionPane.showInputDialog("요일을 입력하세요 (예: MONDAY): ");
+            String courses = JOptionPane.showInputDialog("해당 요일에 들어야 할 강의들을 입력하세요 (쉼표로 구분): ");
+            List<String> courseList = Arrays.asList(courses.split(","));
+            schedule.put(day.toUpperCase(), courseList);
+
+            builder.append(day + "의 강의 목록이 저장되었습니다.\n");
+            saveData();  // 데이터 저장
+        } else if (choice == 1) {
+            String day = JOptionPane.showInputDialog("삭제할 강의가 있는 요일을 입력하세요 (예: MONDAY): ");
+            if (schedule.containsKey(day.toUpperCase())) {
+                String courseToDelete = JOptionPane.showInputDialog("삭제할 강의명을 입력하세요: ");
+                List<String> courseList = schedule.get(day.toUpperCase());
+                courseList.remove(courseToDelete);
+                schedule.put(day.toUpperCase(), courseList);
+
+                builder.append(courseToDelete + " 강의가 " + day + "의 강의 목록에서 삭제되었습니다.\n");
+                saveData();  // 데이터 저장
+            } else {
+                builder.append("입력된 요일에 해당하는 강의 목록이 없습니다.\n");
+            }
+        } else if (choice == 2) {
+            return;  // 메뉴로 돌아가기
+        } else {
+            builder.append("잘못된 입력입니다.\n");
+        }
     }
 
     // 2. 강의 요약 입력하고 출력
@@ -119,61 +150,73 @@ public class StudyManagerAppGUI {
 
     // 3. 복습 주기 설정 및 알림 기능
     private static void reviewNotification(StringBuilder builder) {
-        String courseName = JOptionPane.showInputDialog("복습 주기를 설정할 강의명을 입력하세요: ");
-        String startDateInput = JOptionPane.showInputDialog(courseName + " 강의의 복습 시작일을 입력하세요 (yyyy-MM-dd): ");
-        LocalDate startDate = null;
-        // 날짜 형식이 맞는지 확인
-        try {
-            startDate = LocalDate.parse(startDateInput);
-        } catch (DateTimeParseException e) {
-            builder.append("잘못된 날짜 형식입니다. yyyy-MM-dd 형식으로 입력해주세요.\n");
-            return;
+        String[] options = {"복습 주기 추가", "복습 주기 삭제", "메뉴로 돌아가기"};
+        int choice = JOptionPane.showOptionDialog(null, "원하는 기능을 선택하세요", "복습 알림 관리",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+
+        if (choice == 0) {
+            // 복습 주기 추가
+            String courseName = JOptionPane.showInputDialog("복습 주기를 설정할 강의명을 입력하세요: ");
+            String startDateInput = JOptionPane.showInputDialog(courseName + " 강의의 복습 시작일을 입력하세요 (yyyy-MM-dd): ");
+            LocalDate startDate = null;
+            try {
+                startDate = LocalDate.parse(startDateInput);
+            } catch (DateTimeParseException e) {
+                builder.append("잘못된 날짜 형식입니다. yyyy-MM-dd 형식으로 입력해주세요.\n");
+                return;
+            }
+
+            String endDateInput = JOptionPane.showInputDialog("복습 종료일을 입력하세요 (yyyy-MM-dd): ");
+            LocalDate endDate = null;
+            try {
+                endDate = LocalDate.parse(endDateInput);
+            } catch (DateTimeParseException e) {
+                builder.append("잘못된 날짜 형식입니다. yyyy-MM-dd 형식으로 입력해주세요.\n");
+                return;
+            }
+
+            if (endDate.isBefore(startDate)) {
+                builder.append("복습 종료일은 시작일 이후여야 합니다. 다시 입력해주세요.\n");
+                return;
+            }
+
+            String cycleInput = JOptionPane.showInputDialog(courseName + " 강의의 복습 주기를 며칠 간격으로 설정하시겠습니까? ");
+            int cycle = Integer.parseInt(cycleInput);
+
+            List<LocalDate> reviewDatesList = new ArrayList<>();
+            LocalDate nextReviewDate = startDate;
+            while (!nextReviewDate.isAfter(endDate)) {
+                reviewDatesList.add(nextReviewDate);
+                nextReviewDate = nextReviewDate.plusDays(cycle);
+            }
+
+            reviewDates.put(courseName, reviewDatesList);
+
+            builder.append(courseName + " 강의의 복습 주기가 " + cycle + "일로 설정되었습니다. 복습 시작일은 " + startDate + "이고, 종료일은 " + endDate + "입니다.\n");
+            saveData();  // 데이터 저장
+            printDailyScheduleAndReviewNotification(builder);
+        } else if (choice == 1) {
+            // 복습 주기 삭제
+            String courseName = JOptionPane.showInputDialog("복습 주기를 삭제할 강의명을 입력하세요: ");
+            if (reviewDates.containsKey(courseName)) {
+                reviewDates.remove(courseName);
+                builder.append(courseName + " 강의의 복습 주기가 삭제되었습니다.\n");
+                saveData();  // 데이터 저장
+            } else {
+                builder.append(courseName + " 강의의 복습 주기가 존재하지 않습니다.\n");
+            }
+        } else if (choice == 2) {
+            builder.append("복습 알림 관리가 취소되었습니다.\n");
         }
-
-        String endDateInput = JOptionPane.showInputDialog("복습 종료일을 입력하세요 (yyyy-MM-dd): ");
-        LocalDate endDate = null;
-        // 날짜 형식이 맞는지 확인
-        try {
-            endDate = LocalDate.parse(endDateInput);
-        } catch (DateTimeParseException e) {
-            builder.append("잘못된 날짜 형식입니다. yyyy-MM-dd 형식으로 입력해주세요.\n");
-            return;
-        }
-
-        if (endDate.isBefore(startDate)) {
-            builder.append("복습 종료일은 시작일 이후여야 합니다. 다시 입력해주세요.\n");
-            return;
-        }
-
-        String cycleInput = JOptionPane.showInputDialog(courseName + " 강의의 복습 주기를 며칠 간격으로 설정하시겠습니까? ");
-        int cycle = Integer.parseInt(cycleInput);
-
-        // 복습 날짜 계산
-        List<LocalDate> reviewDatesList = new ArrayList<>();
-        LocalDate nextReviewDate = startDate;
-        while (!nextReviewDate.isAfter(endDate)) {
-            reviewDatesList.add(nextReviewDate);
-            nextReviewDate = nextReviewDate.plusDays(cycle);
-        }
-
-        // 복습 날짜 저장
-        reviewDates.put(courseName, reviewDatesList);
-
-        builder.append(courseName + " 강의의 복습 주기가 " + cycle + "일로 설정되었습니다. 복습 시작일은 " + startDate + "이고, 종료일은 " + endDate + "입니다.\n");
-        saveData();  // 데이터 저장
-
-        // 복습 알림 출력
-        printDailyScheduleAndReviewNotification(builder);
     }
 
     // 복습 알림과 강의 목록 출력
     private static void printDailyScheduleAndReviewNotification(StringBuilder builder) {
         LocalDate today = LocalDate.now();
-        String dayOfWeek = today.getDayOfWeek().toString();  // 요일 구하기
+        String dayOfWeek = today.getDayOfWeek().toString();
 
         builder.append("\n오늘은 " + today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " (" + dayOfWeek + ") 입니다.\n");
 
-        // 요일에 맞는 강의 목록 출력
         if (schedule.containsKey(dayOfWeek)) {
             List<String> todayCourses = schedule.get(dayOfWeek);
             builder.append("오늘의 강의 목록:\n");
@@ -184,7 +227,6 @@ public class StudyManagerAppGUI {
             builder.append("오늘의 강의 목록이 없습니다.\n");
         }
 
-        // 복습 알림 출력
         boolean reviewReminderShown = false;
         for (Map.Entry<String, List<LocalDate>> entry : reviewDates.entrySet()) {
             String courseName = entry.getKey();
@@ -207,25 +249,22 @@ public class StudyManagerAppGUI {
              BufferedWriter summaryWriter = new BufferedWriter(new FileWriter(SUMMARY_FILE, true)); // true로 append 모드 설정
              BufferedWriter reviewWriter = new BufferedWriter(new FileWriter(REVIEW_FILE))) {
 
-            // 요일별 강의 목록 저장
             for (Map.Entry<String, List<String>> entry : schedule.entrySet()) {
                 scheduleWriter.write(entry.getKey() + ": " + String.join(",", entry.getValue()));
                 scheduleWriter.newLine();
             }
 
-            // 강의 요약 저장 (append 모드로 파일에 이어쓰기)
             for (Map.Entry<String, String> entry : courseSummaries.entrySet()) {
                 summaryWriter.write(entry.getKey() + ": " + entry.getValue());
                 summaryWriter.newLine();
             }
 
-            // 복습 날짜 저장
             for (Map.Entry<String, List<LocalDate>> entry : reviewDates.entrySet()) {
                 StringBuilder sb = new StringBuilder(entry.getKey() + ": ");
                 for (LocalDate date : entry.getValue()) {
-                    sb.append(date.toString()).append(",");  // LocalDate를 String 형식으로 변환하여 저장
+                    sb.append(date.toString()).append(",");
                 }
-                sb.setLength(sb.length() - 1);  // 마지막 쉼표 제거
+                sb.setLength(sb.length() - 1);
                 reviewWriter.write(sb.toString());
                 reviewWriter.newLine();
             }
@@ -242,30 +281,27 @@ public class StudyManagerAppGUI {
              BufferedReader reviewReader = new BufferedReader(new FileReader(REVIEW_FILE))) {
 
             String line;
-            // 요일별 강의 목록 불러오기
             while ((line = scheduleReader.readLine()) != null) {
                 String[] parts = line.split(": ");
-                if (parts.length == 2) {  // 유효한 데이터만 처리
+                if (parts.length == 2) {
                     schedule.put(parts[0], Arrays.asList(parts[1].split(",")));
                 }
             }
 
-            // 강의 요약 불러오기
             while ((line = summaryReader.readLine()) != null) {
                 String[] parts = line.split(": ");
-                if (parts.length == 2) {  // 유효한 데이터만 처리
+                if (parts.length == 2) {
                     courseSummaries.put(parts[0], parts[1]);
                 }
             }
 
-            // 복습 날짜 불러오기
             while ((line = reviewReader.readLine()) != null) {
                 String[] parts = line.split(": ");
-                if (parts.length == 2) {  // 유효한 데이터만 처리
+                if (parts.length == 2) {
                     List<LocalDate> dates = new ArrayList<>();
                     for (String dateStr : parts[1].split(",")) {
                         try {
-                            dates.add(LocalDate.parse(dateStr));  // 날짜 형식 맞춰서 파싱
+                            dates.add(LocalDate.parse(dateStr));
                         } catch (DateTimeParseException e) {
                             System.out.println("잘못된 날짜 형식: " + dateStr);
                         }
