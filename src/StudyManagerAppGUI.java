@@ -69,6 +69,11 @@ public class StudyManagerAppGUI {
         // 초기화 및 프레임 보이기
         frame.add(panel);
         frame.setVisible(true);
+
+        // 프로그램 실행 시, 초기 상태 출력
+        StringBuilder builder = new StringBuilder();
+        printDailyScheduleAndReviewNotification(builder);
+        textArea.setText(builder.toString());
     }
 
     // 1. 요일별 강의 목록 입력하고 출력
@@ -274,3 +279,4 @@ public class StudyManagerAppGUI {
         }
     }
 }
+
