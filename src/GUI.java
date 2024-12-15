@@ -7,7 +7,7 @@ public class GUI {
     private static JPanel mainPanel;
     private static CardLayout cardLayout;
     private static Stack<String> screenHistory = new Stack<>(); //화면 기록
-    private static ExerciseManager exerciseManagerInstance = ExerciseManager.getExerciseManager(); // 이름 변경
+    private static ExerciseManager exerciseManagerInstance = ExerciseManager.getExerciseManager(); 
     public static ExerciseManager getExerciseManager() {return exerciseManagerInstance;}
 
     public static void main(String[] args) {
@@ -268,7 +268,7 @@ public class GUI {
         recordArea.setBorder(BorderFactory.createTitledBorder("기록"));
         JScrollPane recordScrollPane = new JScrollPane(recordArea);
 
-        // 하단 버튼 패널
+        // 버튼 패널
         JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 10, 10));
         JButton startButton = new JButton("시작");
         JButton stopButton = new JButton("중지");
@@ -315,7 +315,7 @@ public class GUI {
         resetButton.addActionListener(e -> {
             ExerciseManager manager = GUI.getExerciseManager();
             manager.resetTimer(timerLabel);
-            recordArea.setText(""); // 기록 초기화
+            recordArea.setText(""); 
         });
         
 
@@ -390,7 +390,7 @@ public class GUI {
         // 알림 설정 창
         JFrame notificationFrame = new JFrame("알림 설정");
         notificationFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        notificationFrame.setSize(500, 600); // 운동 관리 인터페이스 크기와 동일
+        notificationFrame.setSize(500, 600);
         notificationFrame.setLayout(new BorderLayout(10, 10));
     
         // 상단 패널: 돌아가기 버튼과 디지털 시계
@@ -399,7 +399,7 @@ public class GUI {
         // 돌아가기 버튼
         JButton backButton = new JButton("돌아가기");
         backButton.addActionListener(e -> notificationFrame.dispose());
-        topPanel.add(backButton, BorderLayout.WEST); // 좌측 상단에 배치
+        topPanel.add(backButton, BorderLayout.WEST); 
     
         // 디지털 시계 표시
         JLabel currentTimeLabel = new JLabel("00:00", JLabel.CENTER);
@@ -410,7 +410,7 @@ public class GUI {
 
     
         // 알림 시간 입력 패널
-        JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10)); // 좌측 정렬
+        JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         JLabel alarmLabel = new JLabel("알림 시간 (HH:mm):");
         alarmLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
         JTextField alarmTimeField = new JTextField(10); 
@@ -437,16 +437,16 @@ public class GUI {
         // 저장 버튼
         JButton saveButton = new JButton("저장");
         saveButton.addActionListener(e -> {
-            ExerciseManager exerciseManager = GUI.getExerciseManager(); // 변수 이름 변경
+            ExerciseManager exerciseManager = GUI.getExerciseManager(); 
             exerciseManager.saveAlarmTime(alarmTimeField, alarmDisplayField);
         });
 
         // 리셋 버튼
         JButton resetButton = new JButton("리셋");
         resetButton.addActionListener(e -> {
-            ExerciseManager exerciseManager = GUI.getExerciseManager(); // 변수 이름 변경
-            alarmTimeField.setText(""); // 입력 필드 초기화
-            alarmDisplayField.setText(""); // 설정된 알람 시간 초기화
+            ExerciseManager exerciseManager = GUI.getExerciseManager(); 
+            alarmTimeField.setText(""); 
+            alarmDisplayField.setText(""); 
             exerciseManager.resetAlarmTime();
             JOptionPane.showMessageDialog(notificationFrame, "알림이 리셋되었습니다.", "리셋", JOptionPane.INFORMATION_MESSAGE);
         });
@@ -464,13 +464,13 @@ public class GUI {
     
         // 메인 패널 구성
         JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
-        centerPanel.add(inputPanel, BorderLayout.NORTH); // 알림 시간 입력 패널
-        centerPanel.add(new JScrollPane(alarmDisplayField), BorderLayout.CENTER); // 설정된 알림 시간 표시 (스크롤 가능)
-    
+        centerPanel.add(inputPanel, BorderLayout.NORTH); 
+        centerPanel.add(new JScrollPane(alarmDisplayField), BorderLayout.CENTER); 
+
         // 프레임 구성
-        notificationFrame.add(topPanel, BorderLayout.NORTH); // 상단: 돌아가기 버튼과 디지털 시계
-        notificationFrame.add(centerPanel, BorderLayout.CENTER); // 중앙: 입력 및 설정된 시간 표시
-        notificationFrame.add(buttonPanel, BorderLayout.SOUTH); // 하단: 버튼 패널
+        notificationFrame.add(topPanel, BorderLayout.NORTH); 
+        notificationFrame.add(centerPanel, BorderLayout.CENTER); 
+        notificationFrame.add(buttonPanel, BorderLayout.SOUTH); 
     
         notificationFrame.setVisible(true);
     }
@@ -497,7 +497,7 @@ public class GUI {
         JLabel exerciseLabel = new JLabel("운동 종류:");
         String[] exercises = {"걷기", "달리기", "수영", "직접입력"};
         JComboBox<String> exerciseComboBox = new JComboBox<>(exercises);
-        exerciseComboBox.setBackground(Color.WHITE); // 배경 하얀색
+        exerciseComboBox.setBackground(Color.WHITE); 
     
         JLabel hourLabel = new JLabel("운동 시간 (시간):");
         JTextField hourInput = new JTextField(5);
@@ -527,7 +527,7 @@ public class GUI {
     
         recordFrame.add(centerPanel, BorderLayout.CENTER);
     
-        // 동작: "직접 입력" 선택 시 칼로리 입력창 띄우기
+        // "직접 입력" 선택 시 칼로리 입력창 띄우기
         exerciseComboBox.addActionListener(e -> {
             String selectedExercise = (String) exerciseComboBox.getSelectedItem();
             if ("직접입력".equals(selectedExercise)) {
@@ -542,7 +542,7 @@ public class GUI {
             }
         });
     
-        // 하단 패널: 칼로리 계산 및 저장 버튼
+        // 칼로리 계산 및 저장 버튼
         JPanel bottomPanel = new JPanel(new FlowLayout());
         JButton calculateButton = new JButton("칼로리 계산");
         JButton saveButton = new JButton("저장");
