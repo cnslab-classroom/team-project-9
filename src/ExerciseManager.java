@@ -1,8 +1,6 @@
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-//import java.awt.event.ActionEvent;
-//import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -20,6 +18,11 @@ public class ExerciseManager {
         }
         return instance;
     }
+
+    // 총 소모 칼로리와 남은 칼로리 관리
+    private double totalCaloriesToBurn; 
+    private double remainingCaloriesToBurn; 
+    private List<Double> burnedCaloriesHistory; 
 
     // 운동 데이터 관리 필드
     private List<ExerciseData> exerciseDataList;
@@ -39,17 +42,61 @@ public class ExerciseManager {
     private int year, month, nowMonth, nowYear, today;
     private Calendar cal = Calendar.getInstance();
 
-    // ExerciseManager 생성자
+    // ExerciseManager 생성자 (DateForm 초기화)
     private ExerciseManager() {
         this.exerciseDataList = new ArrayList<>();
+        this.burnedCaloriesHistory = new ArrayList<>();
+        this.totalCaloriesToBurn = 0;
+        this.remainingCaloriesToBurn = 0;
         this.isRunning = false;
-
-        // DateForm 초기화
         year = cal.get(Calendar.YEAR);
         month = cal.get(Calendar.MONTH) + 1;
         nowMonth = month;
         nowYear = year;
         today = cal.get(Calendar.DATE);
+    }
+
+    // 총 소모 칼로리 설정
+    public void setTotalCaloriesToBurn(double totalCalories) {
+        this.totalCaloriesToBurn = totalCalories;
+        this.remainingCaloriesToBurn = totalCalories; 
+    }
+
+    // 소모된 칼로리 추가 및 남은 칼로리 갱신
+    public void addBurnedCalories(double burnedCalories) {
+        this.burnedCaloriesHistory.add(burnedCalories);
+        this.remainingCaloriesToBurn -= burnedCalories;
+
+        if (this.remainingCaloriesToBurn < 0) {
+            this.remainingCaloriesToBurn = 0; 
+        }
+    }
+
+    // 총 소모 칼로리 가져오기
+    public double getTotalCaloriesToBurn() {
+        return totalCaloriesToBurn;
+    }
+
+    // 남은 소모 칼로리 가져오기
+    public double getRemainingCaloriesToBurn() {
+        return remainingCaloriesToBurn;
+    }
+
+    // 하루 감량 목표 계산
+    public double calculateDailyTarget(int remainingDays) {
+        if (remainingDays <= 0) return 0;
+        return remainingCaloriesToBurn / remainingDays;
+    }
+
+    // 소모 칼로리 기록 가져오기
+    public List<Double> getBurnedCaloriesHistory() {
+        return burnedCaloriesHistory;
+    }
+
+    // 소모 칼로리 기록 초기화
+    public void resetCalories() {
+        this.remainingCaloriesToBurn = this.totalCaloriesToBurn;
+        this.burnedCaloriesHistory.clear();
     }
 
     // 운동 데이터 클래스
@@ -158,6 +205,9 @@ public class ExerciseManager {
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
+
+
+
 
     // 알람 관련 메서드
     public void setAlarmTime(String time) {
@@ -352,7 +402,7 @@ public class ExerciseManager {
     }
 
     //운동 관리 관련 메서드
-    private double customCalories = 5.0; // 기본 값 (직접입력 분당 칼로리)
+    private double customCalories = 5.0; 
 
     // 시간과 분을 받아 총 소모 칼로리 계산
     public double calculateCaloriesWithTime(String exerciseType, double hours, double minutes) {
@@ -379,10 +429,10 @@ public class ExerciseManager {
                 caloriesPerMinute = 10.0;
                 break;
             case "직접입력":
-                caloriesPerMinute = customCalories; // 사용자가 설정한 값
+                caloriesPerMinute = customCalories; 
                 break;
             default:
-                caloriesPerMinute = 5.0; // 기본 값
+                caloriesPerMinute = 5.0; 
                 break;
         }
 
