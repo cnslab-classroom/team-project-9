@@ -87,6 +87,7 @@ public class GUI {
     private static JPanel createFinancePanel() {
         // FinanceManager 객체 생성
         FinanceManager financeManager = new FinanceManager();
+        FinanceManagerGUI financeManagerGUI = new FinanceManagerGUI(financeManager);
          // FinanceManager의 GUI 패널 반환 메서드 호출
 
         // 전체 패널 생성
@@ -107,7 +108,7 @@ public class GUI {
         financePanel.add(topPanel, BorderLayout.NORTH); // 상단에 뒤로가기 버튼 추가
         financePanel.add(contentPanel, BorderLayout.CENTER); // 중앙에 재정 관리 패널 추가
 
-        return financePanel;
+        return financeManagerGUI.createFinancePanel(() -> switchScreen("메인 메뉴"));
     }
 
     // 학습 관리 패널 생성
