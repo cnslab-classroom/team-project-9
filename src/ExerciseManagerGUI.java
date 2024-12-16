@@ -8,6 +8,10 @@ public class ExerciseManagerGUI {
     private static CardLayout cardLayout;
     private static Stack<String> screenHistory = new Stack<>(); 
     private static ExerciseManager exerciseManagerInstance = ExerciseManager.getExerciseManager(); 
+    public ExerciseManagerGUI(ExerciseManager exerciseManager) {
+        //TODO Auto-generated constructor stub
+    }
+
     public static ExerciseManager getExerciseManager() {return exerciseManagerInstance;}
 
     public static void main(String[] args) {
@@ -45,48 +49,36 @@ public class ExerciseManagerGUI {
     }
 
     // 운동 관리 패널 생성
-    private static JPanel createExercisePanel() {
+    public static JPanel createExercisePanel() {
         JPanel exercisePanel = new JPanel(new BorderLayout());
-    
-        // 상단 버튼 영역
-        JPanel topPanel = new JPanel(new GridLayout(1, 2, 10, 10));
-        JButton backButton = new JButton("돌아가기");
-        backButton.addActionListener(e -> navigateBack());
 
-        //감량 무게 설정 버튼
-        JButton resetButton = new JButton("감량 무게 설정");
-        resetButton.addActionListener(e -> ExerciseManager.getExerciseManager().showWeightInputDialog(mainFrame));
-
-    
-        topPanel.add(backButton);
-        topPanel.add(resetButton);
-    
-        // 중앙 영역: 달력 추가
+        // 달력 패널 추가
         JPanel calendarPanel = ExerciseManager.getExerciseManager().createDateFormPanel();
-        exercisePanel.add(calendarPanel, BorderLayout.CENTER);
 
-        // 하단 버튼 영역
-        JPanel lowerPanel = new JPanel(new GridLayout(2, 1, 10, 10));
-        JButton timerButton = new JButton("타이머 & 소모 칼로리 계산");
-        timerButton.addActionListener(e -> ExerciseManager.getExerciseManager().showTimerAndCaloriesPanel(mainFrame));
-
-        // 알림 설정 버튼
+        // 버튼 패널
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        JButton weightButton = new JButton("감량 무게 설정");
+        JButton timerButton = new JButton("타이머 및 소모 칼로리 계산");
         JButton routineButton = new JButton("알림 설정");
-        routineButton.addActionListener(e -> ExerciseManager.showNotificationPanel(mainFrame));
-
-        // 운동 기록 버튼
         JButton recordButton = new JButton("운동 기록 보기");
+
+        // 버튼 기능 연동
+        weightButton.addActionListener(e -> ExerciseManager.getExerciseManager().showWeightInputDialog(mainFrame));
+        timerButton.addActionListener(e -> ExerciseManager.getExerciseManager().showTimerAndCaloriesPanel(null));
+        routineButton.addActionListener(e -> ExerciseManager.showNotificationPanel(mainFrame));
         recordButton.addActionListener(e -> ExerciseManager.getExerciseManager().showExerciseRecordPopup(mainFrame));
 
-        // 버튼 부착
-        lowerPanel.add(timerButton);
-        lowerPanel.add(routineButton);
-        lowerPanel.add(recordButton);
-    
-        // 패널 구성
-        exercisePanel.add(topPanel, BorderLayout.NORTH);
-        exercisePanel.add(lowerPanel, BorderLayout.SOUTH);
-    
+
+        // 버튼 패널 추가
+        buttonPanel.add(weightButton);
+        buttonPanel.add(timerButton);
+        buttonPanel.add(routineButton);
+        buttonPanel.add(recordButton);
+
+        // 패널 합치기
+        exercisePanel.add(calendarPanel, BorderLayout.CENTER);
+        exercisePanel.add(buttonPanel, BorderLayout.SOUTH);
+
         return exercisePanel;
     }
     

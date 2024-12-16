@@ -10,7 +10,7 @@ public class GUI {
 
     private static FinanceManagerGUI financeManagerGUI;
     private static StudyManagerAppGUI studyManagerGUI;
-    private static ExerciseManager exerciseManager = new ExerciseManager();
+    private static ExerciseManager exerciseManager;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new GUI().createAndShowGUI());
@@ -49,7 +49,11 @@ public class GUI {
 
         financeButton.addActionListener(e -> switchScreen("재정 관리"));
         studyButton.addActionListener(e -> switchScreen("학습 관리"));
-        exerciseButton.addActionListener(e -> switchScreen("운동 관리"));
+        exerciseButton.addActionListener(e -> {
+            JPanel exercisePanel = createExercisePanel(); // 운동 패널 생성
+            mainPanel.add(exercisePanel, "운동 관리");
+            switchScreen("운동 관리");
+        });
 
         buttonPanel.add(financeButton);
         buttonPanel.add(studyButton);
@@ -91,22 +95,27 @@ public class GUI {
         return panel;
     }
 
-    // 운동 관리 패널
-    private JPanel createExercisePanel() {
-        JPanel exercisePanel = new JPanel(new BorderLayout());
+    // 운동 관리 패널 생성
+private static JPanel createExercisePanel() {
+    JPanel panel = new JPanel(new BorderLayout());
 
-        // 뒤로가기 버튼
-        JButton backButton = new JButton("메인 메뉴로 돌아가기");
-        backButton.addActionListener(e -> switchScreen("메인 메뉴"));
-        exercisePanel.add(backButton, BorderLayout.NORTH);
+    // ExerciseManager 및 GUI 객체 생성
+    ExerciseManager exerciseManager = new ExerciseManager();
+    ExerciseManagerGUI exerciseManagerGUI = new ExerciseManagerGUI(exerciseManager);
 
-        // ExerciseManager의 패널 추가
-        exercisePanel.add(exerciseManager.createMainPanel(), BorderLayout.CENTER);
-        return exercisePanel;
-    }
+    // 뒤로 가기 버튼 추가
+    JButton backButton = new JButton("뒤로 가기");
+    backButton.addActionListener(e -> switchScreen("메인 메뉴"));
+    panel.add(backButton, BorderLayout.NORTH);
 
-    // 화면 전환 메서드
-    private void switchScreen(String screenName) {
+    // ExerciseManagerGUI에서 가져온 패널 추가
+    JPanel exerciseContentPanel = exerciseManagerGUI.createExercisePanel();
+    panel.add(exerciseContentPanel, BorderLayout.CENTER);
+
+    return panel;
+}
+        // 화면 전환 메서드
+        private static void switchScreen(String screenName) {
         if (screenHistory.isEmpty() || !screenHistory.peek().equals(screenName)) {
             screenHistory.push(screenName);
         }

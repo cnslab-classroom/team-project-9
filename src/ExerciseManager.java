@@ -43,7 +43,7 @@ public class ExerciseManager {
     private Calendar cal = Calendar.getInstance();
 
     // ExerciseManager 생성자 (DateForm 초기화)
-    private ExerciseManager() {
+    public ExerciseManager() {
         this.exerciseDataList = new ArrayList<>();
         this.burnedCaloriesHistory = new ArrayList<>();
         this.totalCaloriesToBurn = 0;
