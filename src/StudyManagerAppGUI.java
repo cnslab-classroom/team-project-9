@@ -4,6 +4,7 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.awt.BorderLayout;
 
 public class StudyManagerAppGUI {
     private static Map<String, List<String>> schedule = new HashMap<>();  // 요일별 강의 목록
@@ -18,6 +19,24 @@ public class StudyManagerAppGUI {
     private static final JTextArea textArea = new JTextArea(20, 40);
     private static final JPanel panel = new JPanel();
 
+
+    public JPanel createStudyPanel(Runnable backAction) {
+        JPanel studyPanel = new JPanel(new BorderLayout());
+    
+        // 상단 뒤로가기 버튼
+        JButton backButton = new JButton("뒤로가기");
+        backButton.addActionListener(e -> backAction.run());
+        studyPanel.add(backButton, BorderLayout.NORTH);
+    
+        // 중앙 내용 추가
+        JTextArea studyArea = new JTextArea("학습 관리 패널입니다.");
+        studyArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(studyArea);
+    
+        studyPanel.add(scrollPane, BorderLayout.CENTER);
+    
+        return studyPanel;
+    }
     public static void main(String[] args) {
         loadData();  // 프로그램 시작 시 데이터 불러오기
 
