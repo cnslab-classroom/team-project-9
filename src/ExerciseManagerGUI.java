@@ -52,7 +52,8 @@ public class ExerciseManagerGUI {
         JPanel topPanel = new JPanel(new GridLayout(1, 2, 10, 10));
         JButton backButton = new JButton("돌아가기");
         backButton.addActionListener(e -> navigateBack());
-    
+
+        //감량 무게 설정 버튼
         JButton resetButton = new JButton("감량 무게 설정");
         resetButton.addActionListener(e -> ExerciseManager.getExerciseManager().showWeightInputDialog(mainFrame));
 
@@ -68,15 +69,16 @@ public class ExerciseManagerGUI {
         JPanel lowerPanel = new JPanel(new GridLayout(2, 1, 10, 10));
         JButton timerButton = new JButton("타이머 & 소모 칼로리 계산");
         timerButton.addActionListener(e -> ExerciseManager.getExerciseManager().showTimerAndCaloriesPanel(mainFrame));
-    
+
+        // 알림 설정 버튼
         JButton routineButton = new JButton("알림 설정");
         routineButton.addActionListener(e -> ExerciseManager.showNotificationPanel(mainFrame));
 
-
+        // 운동 기록 버튼
         JButton recordButton = new JButton("운동 기록 보기");
         recordButton.addActionListener(e -> ExerciseManager.getExerciseManager().showExerciseRecordPopup(mainFrame));
 
-    
+        // 버튼 부착
         lowerPanel.add(timerButton);
         lowerPanel.add(routineButton);
         lowerPanel.add(recordButton);
@@ -88,7 +90,7 @@ public class ExerciseManagerGUI {
         return exercisePanel;
     }
     
-    
+    //뒤로가기
     private static void navigateBack() {
         if (!screenHistory.isEmpty()) {
             screenHistory.pop(); 
