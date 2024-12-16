@@ -10,8 +10,6 @@ public class GUI {
 
     private static FinanceManagerGUI financeManagerGUI;
     private static StudyManagerAppGUI studyManagerGUI;
-    private static ExerciseManager exerciseManager;
-
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new GUI().createAndShowGUI());
     }
@@ -98,17 +96,13 @@ public class GUI {
 private static JPanel createExercisePanel() {
     JPanel panel = new JPanel(new BorderLayout());
 
-    // ExerciseManager 및 GUI 객체 생성
-    ExerciseManager exerciseManager = new ExerciseManager();
-    ExerciseManagerGUI exerciseManagerGUI = new ExerciseManagerGUI(exerciseManager);
-
     // 뒤로 가기 버튼 추가
     JButton backButton = new JButton("뒤로 가기");
     backButton.addActionListener(e -> switchScreen("메인 메뉴"));
     panel.add(backButton, BorderLayout.NORTH);
 
     // ExerciseManagerGUI에서 가져온 패널 추가
-    JPanel exerciseContentPanel = exerciseManagerGUI.createExercisePanel();
+    JPanel exerciseContentPanel = ExerciseManagerGUI.createExercisePanel();
     panel.add(exerciseContentPanel, BorderLayout.CENTER);
 
     return panel;

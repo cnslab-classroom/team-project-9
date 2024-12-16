@@ -9,7 +9,7 @@ public class ExerciseManagerGUI {
     private static Stack<String> screenHistory = new Stack<>(); 
     private static ExerciseManager exerciseManagerInstance = ExerciseManager.getExerciseManager(); 
     public ExerciseManagerGUI(ExerciseManager exerciseManager) {
-        //TODO Auto-generated constructor stub
+  
     }
 
     public static ExerciseManager getExerciseManager() {return exerciseManagerInstance;}
@@ -82,14 +82,6 @@ public class ExerciseManagerGUI {
         return exercisePanel;
     }
     
-    //뒤로가기
-    private static void navigateBack() {
-        if (!screenHistory.isEmpty()) {
-            screenHistory.pop(); 
-            if (!screenHistory.isEmpty()) {
-                cardLayout.show(mainPanel, screenHistory.peek());
-            }
-        }
-    }
+
 
 }
