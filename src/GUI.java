@@ -1,8 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.Stack;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
+
 
 public class GUI {
     private static JFrame mainFrame;
@@ -11,22 +10,6 @@ public class GUI {
     private static Stack<String> screenHistory = new Stack<>(); //화면 기록
     private static ExerciseManager exerciseManagerInstance = ExerciseManager.getExerciseManager(); 
     public static ExerciseManager getExerciseManager() {return exerciseManagerInstance;}
-
-    //학습 관리에서 void형식의 system.out을 string으로 가로채기 위함
-    private static String captureOutput(Runnable task) {
-        PrintStream originalOut = System.out;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        PrintStream newOut = new PrintStream(outputStream);
-        System.setOut(newOut);
-
-        try {
-            task.run();
-        } finally {
-            System.setOut(originalOut);
-        }
-
-        return outputStream.toString();
-    }
 
     public static void main(String[] args) {
         // 기본 폰트 설정
