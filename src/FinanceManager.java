@@ -55,6 +55,71 @@ public class FinanceManager {
         return currentBalance;
     }
 
+// GUI 통합용 JPanel 생성
+public JPanel createFinancePanel() {
+    JPanel panel = new JPanel(new BorderLayout());
+
+    // 상단 타이틀
+    JLabel titleLabel = new JLabel("재정 관리 화면", JLabel.CENTER);
+    titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+    panel.add(titleLabel, BorderLayout.NORTH);
+
+    // 기록 표시 영역
+    JTextArea recordsArea = new JTextArea(getRecordsText());
+    recordsArea.setEditable(false);
+    recordsArea.setLineWrap(true);
+    recordsArea.setWrapStyleWord(true);
+    JScrollPane scrollPane = new JScrollPane(recordsArea);
+    scrollPane.setBorder(BorderFactory.createTitledBorder("재정 기록"));
+
+    // 버튼 패널
+    JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 10, 10));
+    JButton addIncomeButton = new JButton("수입 추가");
+    JButton addExpenseButton = new JButton("지출 추가");
+    JButton viewGraphButton = new JButton("잔액 그래프 보기");
+
+    // 버튼 동작
+    addIncomeButton.addActionListener(e -> {
+        String category = JOptionPane.showInputDialog("수입 카테고리:");
+        String amountStr = JOptionPane.showInputDialog("금액:");
+        String description = JOptionPane.showInputDialog("설명:");
+        try {
+            double amount = Double.parseDouble(amountStr);
+            addIncome(category, amount, description);
+            recordsArea.setText(getRecordsText());
+            JOptionPane.showMessageDialog(null, "수입이 추가되었습니다.");
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "잘못된 입력입니다!", "입력 오류", JOptionPane.ERROR_MESSAGE);
+        }
+    });
+
+    addExpenseButton.addActionListener(e -> {
+        String category = JOptionPane.showInputDialog("지출 카테고리:");
+        String amountStr = JOptionPane.showInputDialog("금액:");
+        String description = JOptionPane.showInputDialog("설명:");
+        try {
+            double amount = Double.parseDouble(amountStr);
+            addExpense(category, amount, description);
+            recordsArea.setText(getRecordsText());
+            JOptionPane.showMessageDialog(null, "지출이 추가되었습니다.");
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "잘못된 입력입니다!", "입력 오류", JOptionPane.ERROR_MESSAGE);
+        }
+    });
+
+    viewGraphButton.addActionListener(e -> showGraph());
+
+    buttonPanel.add(addIncomeButton);
+    buttonPanel.add(addExpenseButton);
+    buttonPanel.add(viewGraphButton);
+
+    panel.add(scrollPane, BorderLayout.CENTER);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
+
+    return panel;
+}
+
+
     // GUI 실행
     public void launchGUI() {
         JFrame frame = new JFrame("재정 관리 시스템");

@@ -84,24 +84,28 @@ public class GUI {
 
     // 재정 관리 패널 생성
     private static JPanel createFinancePanel() {
-        JPanel financePanel = new JPanel(new BorderLayout());
-    
-        // 상단 버튼 영역
-        JPanel topPanel = new JPanel(new GridLayout(1, 1, 10, 10));
-        JButton backButton = new JButton("돌아가기");
-        backButton.addActionListener(e -> navigateBack());
-        topPanel.add(backButton);
-    
-        // 중앙 텍스트 영역
-        JTextArea financeTextArea = new JTextArea("재정 관리 인터페이스\n여기서 예산 및 지출을 관리하세요.");
-        financeTextArea.setLineWrap(true);
-        financeTextArea.setWrapStyleWord(true);
-        financeTextArea.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        financePanel.add(financeTextArea, BorderLayout.CENTER);
-    
-        financePanel.add(topPanel, BorderLayout.NORTH);
-    
-        return financePanel;
+         // FinanceManager 객체 생성
+         FinanceManager financeManager = new FinanceManager();
+         // FinanceManager의 GUI 패널 반환 메서드 호출
+    // 전체 패널 생성
+    JPanel financePanel = new JPanel(new BorderLayout());
+
+    // 뒤로가기 버튼 생성
+    JButton backButton = new JButton("뒤로가기");
+    backButton.addActionListener(e -> switchScreen("메인 메뉴")); // 메인 화면으로 돌아가기
+
+    // 뒤로가기 버튼을 상단에 배치
+    JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    topPanel.add(backButton);
+
+    // FinanceManager에서 가져온 패널 (재정 관리 내용)
+    JPanel contentPanel = financeManager.createFinancePanel();
+
+    // 최종 패널에 뒤로가기 버튼과 재정 관리 패널 추가
+    financePanel.add(topPanel, BorderLayout.NORTH); // 상단에 뒤로가기 버튼 추가
+    financePanel.add(contentPanel, BorderLayout.CENTER); // 중앙에 재정 관리 패널 추가
+
+    return financePanel;
     }
 
     // 학습 관리 패널 생성
