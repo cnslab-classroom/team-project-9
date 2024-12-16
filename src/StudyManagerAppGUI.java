@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
+
 
 public class StudyManagerAppGUI {
     private static Map<String, List<String>> schedule = new HashMap<>();  // 요일별 강의 목록
@@ -16,27 +18,59 @@ public class StudyManagerAppGUI {
     private static final String REVIEW_FILE = "review_cycle.txt";
 
     private static final JFrame frame = new JFrame("Study Manager");
-    private static final JTextArea textArea = new JTextArea(20, 40);
+    private static JTextArea textArea = new JTextArea(20, 40);
     private static final JPanel panel = new JPanel();
 
 
     public JPanel createStudyPanel(Runnable backAction) {
         JPanel studyPanel = new JPanel(new BorderLayout());
-    
-        // 상단 뒤로가기 버튼
-        JButton backButton = new JButton("뒤로가기");
-        backButton.addActionListener(e -> backAction.run());
-        studyPanel.add(backButton, BorderLayout.NORTH);
-    
-        // 중앙 내용 추가
-        JTextArea studyArea = new JTextArea("학습 관리 패널입니다.");
-        studyArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(studyArea);
-    
+
+        // 중앙 출력 영역
+        textArea = new JTextArea("");
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+
         studyPanel.add(scrollPane, BorderLayout.CENTER);
-    
-        return studyPanel;
-    }
+
+    // 버튼 패널
+    JPanel buttonPanel = new JPanel(new GridLayout(6, 1, 10, 10));
+    JButton manageScheduleButton = new JButton("강의 목록 관리");
+    JButton manageSummariesButton = new JButton("강의 요약 관리");
+    JButton reviewNotificationsButton = new JButton("복습 알림 관리");
+    JButton scheduleCheckButton = new JButton("스케줄 확인");
+    JButton resetButton = new JButton("전체 데이터 초기화"); // 이름만 설정
+    JButton exitButton = new JButton("실행 종료");
+
+    // 버튼 패널에 추가
+    buttonPanel.add(manageScheduleButton);
+    buttonPanel.add(manageSummariesButton);
+    buttonPanel.add(reviewNotificationsButton);
+    buttonPanel.add(scheduleCheckButton);
+    buttonPanel.add(resetButton);
+    buttonPanel.add(exitButton);
+
+    // 버튼 동작 설정 - 기존 StudyManagerAppGUI.java 코드 재사용
+    StudyManagerAppGUI studyManagerAppGUI = new StudyManagerAppGUI();
+
+    manageScheduleButton.addActionListener(e -> manageSchedule());
+    manageSummariesButton.addActionListener(e -> manageCourseSummary());
+    reviewNotificationsButton.addActionListener(e -> reviewNotification());
+    scheduleCheckButton.addActionListener(e -> manageSchedule());
+
+    // resetButton 동작은 기존 코드에서 처리
+    resetButton.addActionListener(e -> {
+        studyManagerAppGUI.resetData(); // 기존 메서드 호출
+    });
+
+    exitButton.addActionListener(e -> System.exit(0));
+
+    // 버튼 패널을 중앙에 추가
+    studyPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+    return studyPanel;
+}
     public static void main(String[] args) {
         loadData();  // 프로그램 시작 시 데이터 불러오기
 
@@ -309,6 +343,27 @@ private static void saveData() {
     }
 }
 
+
+    // 전체 데이터 초기화 메서드
+    public void resetData() {
+    // 강의 목록, 요약, 알림 등을 초기화
+        schedule.clear();
+        courseSummaries.clear();
+        reviewCycle.clear();
+        reviewDates.clear();
+
+    // 초기화 완료 메시지
+    JOptionPane.showMessageDialog(null, "전체 데이터가 초기화되었습니다.", 
+                                  "데이터 초기화", JOptionPane.INFORMATION_MESSAGE);
+}
+
+
+// 화면 전환 메서드
+public void switchScreen(String screenName) {
+    // 화면 전환 로직은 GUI 클래스에서 수행되므로 호출만 넘겨줌
+    JOptionPane.showMessageDialog(null, "화면 전환: " + screenName);
+    // 실제 GUI 클래스 메서드를 호출하도록 수정할 수 있습니다.
+}
 
     // 데이터 불러오기
     private static void loadData() {

@@ -82,7 +82,6 @@ public class GUI {
     // 학습 관리 패널
     private JPanel createStudyPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-
         // 뒤로가기 버튼
         JButton backButton = new JButton("메인 메뉴로 돌아가기");
         backButton.addActionListener(e -> switchScreen("메인 메뉴"));
