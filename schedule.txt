@@ -1,1 +1,1 @@
-MONDAY: 시소, 자구
+MONDAY: 자료구조
