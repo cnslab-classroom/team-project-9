@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.Stack;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 public class GUI {
     private static JFrame mainFrame;
@@ -9,6 +11,22 @@ public class GUI {
     private static Stack<String> screenHistory = new Stack<>(); //화면 기록
     private static ExerciseManager exerciseManagerInstance = ExerciseManager.getExerciseManager(); 
     public static ExerciseManager getExerciseManager() {return exerciseManagerInstance;}
+
+    //학습 관리에서 void형식의 system.out을 string으로 가로채기 위함
+    private static String captureOutput(Runnable task) {
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream newOut = new PrintStream(outputStream);
+        System.setOut(newOut);
+
+        try {
+            task.run();
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        return outputStream.toString();
+    }
 
     public static void main(String[] args) {
         // 기본 폰트 설정
@@ -84,50 +102,88 @@ public class GUI {
 
     // 재정 관리 패널 생성
     private static JPanel createFinancePanel() {
-         // FinanceManager 객체 생성
-         FinanceManager financeManager = new FinanceManager();
+        // FinanceManager 객체 생성
+        FinanceManager financeManager = new FinanceManager();
          // FinanceManager의 GUI 패널 반환 메서드 호출
-    // 전체 패널 생성
-    JPanel financePanel = new JPanel(new BorderLayout());
 
-    // 뒤로가기 버튼 생성
-    JButton backButton = new JButton("뒤로가기");
-    backButton.addActionListener(e -> switchScreen("메인 메뉴")); // 메인 화면으로 돌아가기
+        // 전체 패널 생성
+        JPanel financePanel = new JPanel(new BorderLayout());
 
-    // 뒤로가기 버튼을 상단에 배치
-    JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    topPanel.add(backButton);
+        // 뒤로가기 버튼 생성
+        JButton backButton = new JButton("뒤로가기");
+        backButton.addActionListener(e -> switchScreen("메인 메뉴")); // 메인 화면으로 돌아가기
 
-    // FinanceManager에서 가져온 패널 (재정 관리 내용)
-    JPanel contentPanel = financeManager.createFinancePanel();
+        // 뒤로가기 버튼을 상단에 배치
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topPanel.add(backButton);
 
-    // 최종 패널에 뒤로가기 버튼과 재정 관리 패널 추가
-    financePanel.add(topPanel, BorderLayout.NORTH); // 상단에 뒤로가기 버튼 추가
-    financePanel.add(contentPanel, BorderLayout.CENTER); // 중앙에 재정 관리 패널 추가
+        // FinanceManager에서 가져온 패널 (재정 관리 내용)
+        JPanel contentPanel = financeManager.createFinancePanel();
 
-    return financePanel;
+        // 최종 패널에 뒤로가기 버튼과 재정 관리 패널 추가
+        financePanel.add(topPanel, BorderLayout.NORTH); // 상단에 뒤로가기 버튼 추가
+        financePanel.add(contentPanel, BorderLayout.CENTER); // 중앙에 재정 관리 패널 추가
+
+        return financePanel;
     }
 
     // 학습 관리 패널 생성
     private static JPanel createStudyPanel() {
         JPanel studyPanel = new JPanel(new BorderLayout());
-    
-        // 상단 버튼 영역
-        JPanel topPanel = new JPanel(new GridLayout(1, 1, 10, 10));
-        JButton backButton = new JButton("돌아가기");
-        backButton.addActionListener(e -> navigateBack());
-        topPanel.add(backButton);
-    
-        // 중앙 텍스트 영역
-        JTextArea studyTextArea = new JTextArea("학습 관리 인터페이스\n여기서 학습 일정을 관리하세요.");
-        studyTextArea.setLineWrap(true);
-        studyTextArea.setWrapStyleWord(true);
-        studyTextArea.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        studyPanel.add(studyTextArea, BorderLayout.CENTER);
-    
-        studyPanel.add(topPanel, BorderLayout.NORTH);
-    
-        return studyPanel;
+
+    // 상단 뒤로가기 버튼
+    JButton backButton = new JButton("뒤로가기");
+    backButton.addActionListener(e -> switchScreen("메인 메뉴"));
+    JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    topPanel.add(backButton);
+
+    // 텍스트 영역 (결과 출력용)
+    JTextArea textArea = new JTextArea(20, 40);
+    textArea.setEditable(false);
+    JScrollPane scrollPane = new JScrollPane(textArea);
+
+    // 버튼 패널 (기능 버튼 추가)
+    JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 10, 10));
+    JButton scheduleButton = new JButton("강의 목록 관리");
+    JButton summaryButton = new JButton("강의 요약 관리");
+    JButton reviewButton = new JButton("복습 알림 관리");
+    JButton exitButton = new JButton("나가기");
+
+    // 버튼 이벤트 설정 - 별도의 작업 스레드로 실행
+    scheduleButton.addActionListener(e -> {
+        new Thread(() -> {
+            StudyManagerApp.manageSchedule();
+            SwingUtilities.invokeLater(() -> textArea.setText("강의 목록 관리가 완료되었습니다."));
+        }).start();
+    });
+
+    summaryButton.addActionListener(e -> {
+        new Thread(() -> {
+            StudyManagerApp.manageCourseSummary();
+            SwingUtilities.invokeLater(() -> textArea.setText("강의 요약 관리가 완료되었습니다."));
+        }).start();
+    });
+
+    reviewButton.addActionListener(e -> {
+        new Thread(() -> {
+            StudyManagerApp.reviewNotification();
+            SwingUtilities.invokeLater(() -> textArea.setText("복습 알림 관리가 완료되었습니다."));
+        }).start();
+    });
+
+    exitButton.addActionListener(e -> System.exit(0));
+
+    buttonPanel.add(scheduleButton);
+    buttonPanel.add(summaryButton);
+    buttonPanel.add(reviewButton);
+    buttonPanel.add(exitButton);
+
+    // 레이아웃 구성
+    studyPanel.add(topPanel, BorderLayout.NORTH); // 뒤로가기 버튼
+    studyPanel.add(scrollPane, BorderLayout.CENTER); // 텍스트 출력 영역
+    studyPanel.add(buttonPanel, BorderLayout.EAST); // 버튼 패널
+
+    return studyPanel;
     }
 
     // 운동 관리 패널 생성

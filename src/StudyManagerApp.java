@@ -51,7 +51,7 @@ public class StudyManagerApp {
     }
 
     // 1. 요일별 강의 목록 입력하고 출력
-    private static void manageSchedule() {
+    public static void manageSchedule() {
         System.out.print("요일을 입력하세요 (예: MONDAY): ");
         String day = scanner.nextLine().toUpperCase();
 
@@ -65,7 +65,7 @@ public class StudyManagerApp {
     }
 
     // 2. 강의 요약 입력하고 출력
-    private static void manageCourseSummary() {
+    public static void manageCourseSummary() {
         while (true) {
             System.out.println("1. 강의 요약 저장");
             System.out.println("2. 강의 요약 보기");
@@ -103,7 +103,7 @@ public class StudyManagerApp {
     }
 
     // 3. 복습 주기 설정 및 알림 기능
-private static void reviewNotification() {
+public static void reviewNotification() {
     System.out.print("복습 주기를 설정할 강의명을 입력하세요: ");
     String courseName = scanner.nextLine();
 
